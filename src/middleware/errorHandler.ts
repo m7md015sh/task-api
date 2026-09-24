@@ -1,14 +1,8 @@
 import type { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";
+import { AppError } from "../shared/errors/AppError.js";
 
-import { AppError } from "../shared/errors/AppError";
-
-export const errorHandler: ErrorRequestHandler = (
-  err,
-  req,
-  res,
-  _next
-) => {
+export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   if (err instanceof ZodError) {
     res.status(400).json({
       error: {
@@ -21,7 +15,6 @@ export const errorHandler: ErrorRequestHandler = (
         requestId: req.requestId,
       },
     });
-
     return;
   }
 
@@ -30,13 +23,10 @@ export const errorHandler: ErrorRequestHandler = (
       error: {
         code: err.code,
         message: err.message,
-        ...(err.details !== undefined
-          ? { details: err.details }
-          : {}),
+        ...(err.details !== undefined ? { details: err.details } : {}),
         requestId: req.requestId,
       },
     });
-
     return;
   }
 

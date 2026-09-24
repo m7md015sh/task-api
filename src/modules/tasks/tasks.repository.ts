@@ -1,12 +1,9 @@
-import type { Task } from "./tasks.types";
+import type { Task } from "./tasks.types.js";
 
 export interface TasksRepository {
   findById(id: string): Promise<Task | null>;
 
-  findByIdAndOwner(
-    id: string,
-    ownerId: string
-  ): Promise<Task | null>;
+  findByIdAndOwner(id: string, ownerId: string): Promise<Task | null>;
 
   findMany(params: {
     ownerId: string;

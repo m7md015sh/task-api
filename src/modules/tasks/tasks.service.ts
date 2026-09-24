@@ -1,12 +1,10 @@
 import { randomUUID } from "node:crypto";
-import type { TasksRepository } from "./tasks.repository";
-import type { Task } from "./tasks.types";
-import { AppError } from "../../shared/errors/AppError";
+import type { TasksRepository } from "./tasks.repository.js";
+import type { Task } from "./tasks.types.js";
+import { NotFoundError } from "../../shared/errors/AppError.js";
 
 export class TasksService {
-  constructor(
-    private readonly tasksRepository: TasksRepository
-  ) {}
+  constructor(private readonly tasksRepository: TasksRepository) {}
 
   async createTask(params: {
     ownerId: string;
@@ -27,70 +25,56 @@ export class TasksService {
 
     return this.tasksRepository.create(task);
   }
-  async getTask(params: {
-  id: string;
-  ownerId: string;
-}): Promise<Task> {
-  const task = await this.tasksRepository.findByIdAndOwner(
-    params.id,
-    params.ownerId
-  );
 
-  if (!task) {
-    throw new AppError(
-      404,
-      "TASK_NOT_FOUND",
-      "Task not found"
+  async getTask(params: { id: string; ownerId: string }): Promise<Task> {
+    const task = await this.tasksRepository.findByIdAndOwner(
+      params.id,
+      params.ownerId
     );
+
+    if (!task) {
+      throw new NotFoundError("Task");
+    }
+
+    return task;
   }
 
-  return task;
-}
-async listTasks(params: {
-  ownerId: string;
-  limit: number;
-  cursor?: string;
-  done?: boolean;
-  sort: "createdAt" | "-createdAt" | "title";
-}) {
-  return this.tasksRepository.findMany(params);
-}
-async updateTask(params: {
-  id: string;
-  ownerId: string;
-  patch: Partial<Pick<Task, "title" | "done" | "dueDate">>;
-}): Promise<Task> {
-  const task = await this.tasksRepository.update(
-    params.id,
-    params.ownerId,
-    params.patch
-  );
-
-  if (!task) {
-    throw new AppError(
-      404,
-      "TASK_NOT_FOUND",
-      "Task not found"
-    );
+  async listTasks(params: {
+    ownerId: string;
+    limit: number;
+    cursor?: string;
+    done?: boolean;
+    sort: "createdAt" | "-createdAt" | "title";
+  }) {
+    return this.tasksRepository.findMany(params);
   }
 
-  return task;
-}
-async deleteTask(params: {
-  id: string;
-  ownerId: string;
-}): Promise<void> {
-  const deleted = await this.tasksRepository.delete(
-    params.id,
-    params.ownerId
-  );
-
-  if (!deleted) {
-    throw new AppError(
-      404,
-      "TASK_NOT_FOUND",
-      "Task not found"
+  async updateTask(params: {
+    id: string;
+    ownerId: string;
+    patch: Partial<Pick<Task, "title" | "done" | "dueDate">>;
+  }): Promise<Task> {
+    const task = await this.tasksRepository.update(
+      params.id,
+      params.ownerId,
+      params.patch
     );
+
+    if (!task) {
+      throw new NotFoundError("Task");
+    }
+
+    return task;
   }
-}
+
+  async deleteTask(params: { id: string; ownerId: string }): Promise<void> {
+    const deleted = await this.tasksRepository.delete(
+      params.id,
+      params.ownerId
+    );
+
+    if (!deleted) {
+      throw new NotFoundError("Task");
+    }
+  }
 }
